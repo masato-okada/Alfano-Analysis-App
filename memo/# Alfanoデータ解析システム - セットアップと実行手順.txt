@@ -1,0 +1,134 @@
+# Alfanoデータ解析システム - セットアップと実行手順
+
+このシステムは、PythonでAlfanoデータ（CSV）を解析し、Next.jsでその結果を可視化するアプリケーションです。
+
+## 1. 必要環境
+
+### Pythonの環境設定
+- Python 3.8以上
+- 必要なライブラリ:
+  ```
+  pip install pandas numpy matplotlib seaborn scikit-learn
+  ```
+
+### Next.jsの環境設定
+- Node.js 14.6.0以上
+- npm または yarn
+
+## 2. プロジェクト構成
+
+```
+alfano-data-analysis/
+│
+├── python/
+│   ├── analyze.py         # データ解析スクリプト
+│   └── requirements.txt   # 依存関係
+│
+├── nextjs-app/
+│   ├── pages/
+│   │   ├── index.js       # メインページ
+│   │   ├── api/
+│   │   │   └── analysis.js # APIエンドポイント
+│   ├── public/
+│   │   └── analysis_results.json # 解析結果
+│   ├── package.json
+│   └── ...
+│
+└── data/
+    └── alfano_data.csv    # 解析対象データ
+```
+
+## 3. ステップバイステップ実装手順
+
+### 3.1 Pythonでデータ解析
+
+1. プロジェクトディレクトリを作成します:
+   ```bash
+   mkdir -p alfano-data-analysis/python alfano-data-analysis/nextjs-app alfano-data-analysis/data
+   ```
+
+2. `alfano_data.csv` をデータディレクトリに配置します。
+
+3. `analyze.py` スクリプトをpythonディレクトリに保存します。
+
+4. 解析を実行します:
+   ```bash
+   cd alfano-data-analysis/python
+   python analyze.py
+   ```
+
+5. 解析結果 (`analysis_results.json`) が生成されます。
+
+### 3.2 Next.jsアプリケーションのセットアップ
+
+1. Next.jsアプリケーションを作成します:
+   ```bash
+   cd alfano-data-analysis/nextjs-app
+   npx create-next-app .
+   ```
+
+2. 必要なライブラリをインストールします:
+   ```bash
+   npm install recharts
+   ```
+
+3. 提供されたコード (`index.js` と `api/analysis.js`) をそれぞれのファイルに配置します。
+
+4. 解析結果JSONファイルをコピーします:
+   ```bash
+   mkdir -p public
+   cp ../python/analysis_results.json public/
+   ```
+
+5. アプリケーションを実行します:
+   ```bash
+   npm run dev
+   ```
+
+6. ブラウザで `http://localhost:3000` にアクセスして、ダッシュボードを確認します。
+
+## 4. 開発フロー
+
+1. CSVデータを更新する場合:
+   - 新しいCSVを `data/` ディレクトリに配置
+   - Pythonスクリプトを実行して解析
+   - 結果JSONを Next.jsアプリの `public/` ディレクトリにコピー
+
+2. 分析方法を変更する場合:
+   - `analyze.py` を編集
+   - 必要に応じてフロントエンドの表示を更新
+
+3. ダッシュボードの表示を変更する場合:
+   - `index.js` を編集
+
+## 5. 本番環境への展開
+
+### Pythonスクリプトの自動実行
+- cron ジョブまたはAirflowなどを使用して定期的に実行
+- 更新されたJSONを指定の場所に出力
+
+### Next.jsアプリケーションのデプロイ
+- Vercel (最も簡単):
+  ```bash
+  npm install -g vercel
+  vercel
+  ```
+
+- または他のホスティングサービス (Netlify, AWS Amplify など)
+
+## 6. 拡張機能のアイデア
+
+1. リアルタイム解析:
+   - Next.jsのAPIから直接Pythonスクリプトを呼び出す
+   - FastAPIなどのPython WebフレームワークをAPIサーバーとして使用
+
+2. インタラクティブなデータアップロード:
+   - ユーザーがブラウザからCSVをアップロードできる機能
+   - アップロードしたデータをその場で解析
+
+3. 高度な可視化:
+   - 3Dグラフの追加
+   - インタラクティブなフィルタリング機能
+
+4. レポート生成:
+   - 分析結果をPDFなどの形式でエクスポートする機能
