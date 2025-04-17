@@ -9,26 +9,20 @@ export default function handler(req, res) {
     }
 
     const raw = fs.readFileSync(filePath, 'utf8');
-    const laps = JSON.parse(raw);
+    const laps = JSON.parse(raw); // Lapごとのデータ配列
 
-    // 各セクター番号ごとに集計
+    // ✅ 1. sector_summary（統計）生成
     const summary = {};
-
     laps.forEach(lap => {
-      const sectorTimes = lap.sectorTimes;
-      Object.entries(sectorTimes).forEach(([sectorName, time]) => {
+      Object.entries(lap.sectorTimes).forEach(([sectorName, time]) => {
         const sector = parseInt(sectorName.replace('Sector', ''));
         if (!summary[sector]) {
-          summary[sector] = {
-            sector,
-            times: [],
-          };
+          summary[sector] = { sector, times: [] };
         }
         summary[sector].times.push(time);
       });
     });
 
-    // 平均・最大・最小の統計を計算
     const sector_summary = Object.values(summary).map(sector => {
       const times = sector.times;
       const mean_time = times.reduce((a, b) => a + b, 0) / times.length;
@@ -41,11 +35,21 @@ export default function handler(req, res) {
         min_time,
         mean_speed: 0,
         max_speed: 0,
-        min_speed: 0,
+        min_speed: 0
       };
     });
 
-    res.status(200).json({ sector_summary });
+    // ✅ 2. sector_geojson（LapData[]）を返す
+    const sector_geojson = laps.map(lap => ({
+      lap: lap.lap,
+      sectorTimes: lap.sectorTimes,
+      points: lap.points // LapData = { points: [{ x, y, Sector }] }
+    }));
+
+    res.status(200).json({
+      sector_summary,
+      sector_geojson
+    });
 
   } catch (err) {
     console.error('Sector API error:', err);
