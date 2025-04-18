@@ -1,11 +1,13 @@
-// pages/index.tsx
+// pages/index.tsx (EngineTab統合版)
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { LayoutGrid, Table, PieChart as PieChartIcon } from 'lucide-react';
+import { LayoutGrid, Table, PieChart as PieChartIcon, ActivitySquare } from 'lucide-react';
 import SummaryTab from '../components/SummaryTab';
 import DataTab from '../components/DataTab';
 import ClustersTab from '../components/ClustersTab';
 import SectorTab from '../components/SectorTab';
+import EngineTab from '../components/EngineTab';
+import SpeedTab from '../components/SpeedTab';
 import {
   AnalysisData,
   SectorSummaryItem,
@@ -16,9 +18,10 @@ export default function Home() {
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [sectorData, setSectorData] = useState<SectorSummaryItem[] | null>(null);
   const [sectorGeoJson, setSectorGeoJson] = useState<LapData[] | null>(null);
+  const [engineData, setEngineData] = useState([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'data' | 'clusters' | 'sector'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'data' | 'clusters' | 'sector' | 'engine'>('summary');
 
   useEffect(() => {
     fetch('/api/analysis')
@@ -44,12 +47,22 @@ export default function Home() {
       })
       .then(data => {
         setSectorData(data.sector_summary || null);
-        setSectorGeoJson(data.sector_geojson || null); // 👈 追加
+        setSectorGeoJson(data.sector_geojson || null);
       })
       .catch(err => {
         console.error(err);
         setSectorData(null);
-        setSectorGeoJson(null); // 👈 念のため null 代入
+        setSectorGeoJson(null);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/engine')
+      .then(res => res.json())
+      .then(data => setEngineData(data))
+      .catch(err => {
+        console.error('Failed to load engine data:', err);
+        setEngineData([]);
       });
   }, []);
 
@@ -74,7 +87,7 @@ export default function Home() {
         </header>
 
         <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
-          <div className="flex border-b border-gray-700">
+          <div className="flex border-b border-gray-700 overflow-x-auto">
             <button onClick={() => setActiveTab('summary')} className={`flex items-center gap-2 px-4 py-3 transition-colors ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-300'}`}>
               <LayoutGrid size={18} />概要
             </button>
@@ -89,13 +102,17 @@ export default function Home() {
             <button onClick={() => setActiveTab('sector')} className={`flex items-center gap-2 px-4 py-3 transition-colors ${activeTab === 'sector' ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-300'}`}>
               <PieChartIcon size={18} />セクター
             </button>
+            <button onClick={() => setActiveTab('engine')} className={`flex items-center gap-2 px-4 py-3 transition-colors ${activeTab === 'engine' ? 'bg-blue-600 text-white' : 'hover:bg-gray-700 text-gray-300'}`}>
+              <ActivitySquare size={18} />エンジン特性
+            </button>
           </div>
 
           <div className="p-6">
             {activeTab === 'summary' && <SummaryTab analysisData={analysisData} />}
             {activeTab === 'data' && <DataTab analysisData={analysisData} />}
             {activeTab === 'clusters' && analysisData.clusters && <ClustersTab analysisData={analysisData} />}
-            {activeTab === 'sector' && <SectorTab sectorData={sectorData} sectorGeoJson={sectorGeoJson} />} {/* 👈 追加 */}
+            {activeTab === 'sector' && <SectorTab sectorData={sectorData} sectorGeoJson={sectorGeoJson} />}
+            {activeTab === 'engine' && <EngineTab sectorRPMData={engineData} />}
           </div>
         </div>
       </div>
